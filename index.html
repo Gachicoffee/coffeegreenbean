@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Green Coffee Bean Chemical Architecture</title>
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <style>
+    body {
+      margin: 0;
+      padding: 40px;
+      background-color: #F5F5F7; /* Apple 실버 라이트 그레이 */
+      font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .dashboard-container {
+      background: #FFFFFF;
+      border-radius: 28px;
+      box-shadow: 0 10px 50px rgba(0, 0, 0, 0.02);
+      padding: 50px;
+      width: 1120px;
+      position: relative;
+      border: 1px solid rgba(0, 0, 0, 0.04);
+    }
+
+    .header-zone {
+      margin-bottom: 30px;
+    }
+    .main-title {
+      color: #1D1D1F;
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin: 0 0 12px 0;
+    }
+    .sub-description {
+      color: #515154;
+      font-size: 13.5px;
+      line-height: 1.6;
+      font-weight: 400;
+      margin: 0;
+      background: #F5F5F7;
+      padding: 16px 20px;
+      border-radius: 14px;
+      border-left: 4px solid #34C759; /* 생두 그리니시 시그니처 */
+    }
+
+    /* 3단 공간 매트릭스 레이아웃 */
+    .workspace {
+      display: grid;
+      grid-template-columns: 290px 420px 290px;
+      align-items: center;
+      position: relative;
+      margin-top: 20px;
+      height: 540px;
+    }
+
+    .side-column {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 100%;
+      z-index: 10;
+    }
+
+    /* iOS 프리미엄 가젯 카드 스타일 */
+    .category-card {
+      background: #FFFFFF;
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      border-radius: 16px;
+      padding: 18px 22px;
+      cursor: pointer;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.01);
+      transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+    .category-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
+      border-color: rgba(0, 0, 0, 0.15);
+    }
+
+    .card-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 5px;
+    }
+    .card-title {
+      font-size: 15.5px;
+      font-weight: 700;
+      color: #1D1D1F;
+      margin-bottom: 6px;
+    }
+    .card-desc {
+      font-size: 11.5px;
+      color: #636366;
+      line-height: 1.45;
+    }
+
+    .center-core {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* 💡 [수정 사항 2 해결] 실사 고해상도 이미지를 품는 묵직한 3D 하드웨어 입체감 프레임 설계 */
+    .bean-image-wrapper {
+      width: 240px;
+      height: 240px;
+      border-radius: 50%;
+      /* 생두 고유의 풀 빛을 받쳐주는 프리미엄 네추럴 드롭 섀도우 인입 */
+      box-shadow: 0 20px 50px rgba(70, 93, 61, 0.22), inset 0 0 20px rgba(0,0,0,0.06);
+      overflow: hidden;
+      border: 6px solid #FFFFFF;
+      z-index: 5;
+      background: #F5F5F7;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+    .bean-image-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s ease;
+    }
+
+    .connector-svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .pointer-line {
+      fill: none;
+      stroke: #E5E5EA;
+      stroke-width: 1.5;
+      transition: stroke 0.25s ease, stroke-width 0.25s ease;
+    }
+    .pointer-circle {
+      fill: #E5E5EA;
+      transition: fill 0.25s ease, r 0.25s ease;
+    }
+
+    /* 호버 액티브 상태 인덱서 */
+    .category-card.active-card {
+      border-color: var(--theme-color) !important;
+    }
+    .pointer-line.active-line {
+      stroke: var(--theme-color) !important;
+      stroke-width: 2.5px;
+    }
+    .pointer-circle.active-circle {
+      fill: var(--theme-color) !important;
+      r: 5px;
+    }
+
+    /* 팝업창 조작 메커니즘 */
+    .apple-popover {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+      pointer-events: auto; 
+      display: none;
+      z-index: 1000;
+      width: 450px;
+      max-height: 420px; 
+      overflow-y: auto;   
+      animation: popFade 0.15s ease-out;
+    }
+
+    /* 스크롤바 커스텀 트랙 */
+    .apple-popover::-webkit-scrollbar {
+      width: 5px;
+    }
+    .apple-popover::-webkit-scrollbar-track {
+      background: rgba(0,0,0,0.01);
+      border-radius: 10px;
+    }
+    .apple-popover::-webkit-scrollbar-thumb {
+      background: rgba(0,0,0,0.15);
+      border-radius: 10px;
+    }
+
+    @keyframes popFade {
+      from { opacity: 0; transform: scale(0.97) translateY(6px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    /* 💡 [수정 사항 1 해결] 완전 불투명 화이트 실드로 스크롤 시 글자 오버랩 현상을 완벽 차단한 고정 소제목 */
+    .pop-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid rgba(0, 0, 0, 0.04);
+      position: sticky;
+      top: -20px; /* 상단 패딩 영역까지 완전히 엄폐 */
+      background: #FFFFFF; /* 100% 완전한 솔리드 화이트 쉴드 처리 */
+      z-index: 10;
+      margin-left: -20px;
+      margin-right: -20px;
+      padding-left: 20px;
+      padding-right: 20px;
+      margin-top: -20px;
+      padding-top: 20px;
+      border-top-left-radius: 18px;
+      border-top-right-radius: 18px;
+    }
+    .pop-item-box {
+      font-size: 12px;
+      background: rgba(0,0,0,0.02);
+      padding: 10px 14px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      line-height: 1.45;
+    }
+    .pop-item-name {
+      font-weight: 700;
+      color: #1D1D1F;
+      margin-bottom: 3px;
+    }
+    .pop-item-desc {
+      color: #515154;
+    }
+
+    .footer-zone {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(0, 0, 0, 0.06);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+    .ref-box {
+      color: #86868B;
+      font-size: 11px;
+      line-height: 1.6;
+      max-width: 720px;
+    }
+    .ref-title {
+      font-weight: 600;
+      color: #636366;
+      margin-bottom: 4px;
+    }
+    .logo-box {
+      text-align: right;
+      font-family: "Georgia", "Pretendard Variable", sans-serif;
+    }
+    .logo-main {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1D1D1F;
+      letter-spacing: 0.5px;
+    }
+    .logo-sub {
+      font-size: 10px;
+      letter-spacing: 1px;
+      color: #AEAED2;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="dashboard-container">
+    <div class="header-zone">
+      <h1 class="main-title">Green Coffee Bean Chemical Architecture (Ultimate Resolution)</h1>
+      <p class="sub-description">
+        본 인포그래픽은 아라비카 표준 생두(Green Bean) 내부에 포진한 <strong>6대 화학 성분 가문의 분자 단위 전수 명세서</strong>입니다. 대분류 스펙트럼 뒤에 은폐되어 있던 미시적인 화학 전구체(Precursors)들을 빠짐없이 해체하여 정렬했습니다. 각 카드에 마우스를 올리면 중앙 생두 코어로부터 흐르는 앵커 지시선과 함께, <strong>수용성 유기산 10종 배열, 지질 산 fatty acid 체인, 유리 아미노산 및 결점 부패 마커(비오젠 아민)</strong> 등 고밀도 화학 명세 시스템을 스크롤하며 전수 추적할 수 있습니다.
+      </p>
+    </div>
+
+    <div class="workspace">
+      
+      <div class="side-column" id="left-col">
+        <div class="category-card" data-id="carbs" style="--theme-color: #007AFF;">
+          <div class="card-label" style="color: #007AFF;">총 구성 비율 • 50-60%</div>
+          <div class="card-title">탄수화물 및 유리당 매트릭스</div>
+          <div class="card-desc">생두 질량의 절반 이상을 구성하는 핵심 골격층으로, 로스팅 시 캐러멜화 및 단맛 전구체의 핵심 원료가 됩니다.</div>
+        </div>
+        <div class="category-card" data-id="lipids" style="--theme-color: #FF9500;">
+          <div class="card-label" style="color: #FF9500;">총 구성 비율 • 15-18%</div>
+          <div class="card-title">지질 및 에센셜 오일 체인</div>
+          <div class="card-desc">아라비카 특유의 고농축 오일 구역으로, 에센셜 향기를 묶는 홀딩 용매이자 크레마 왁스층의 원천입니다.</div>
+        </div>
+        <div class="category-card" data-id="proteins" style="--theme-color: #5856D6;">
+          <div class="card-label" style="color: #5856D6;">총 구성 비율 • 11-15%</div>
+          <div class="card-title">단백질 및 질소 화합물 행렬</div>
+          <div class="card-desc">마이야르 반응의 중추 원료인 단백질과 자유 아미노산 무리이며, 과발효 상태를 추적하는 미생물 변성 마커를 내포합니다.</div>
+        </div>
+      </div>
+
+      <div class="center-core">
+        <svg class="connector-svg" id="connector-canvas" viewBox="0 0 440 540">
+          <path id="line-carbs" class="pointer-line" d="M 0 50 L 100 50 L 150 200" />
+          <circle id="dot-carbs" class="pointer-circle" cx="150" cy="200" r="3.5" />
+
+          <path id="line-lipids" class="pointer-line" d="M 0 270 L 130 270" />
+          <circle id="dot-lipids" class="pointer-circle" cx="130" cy="270" r="3.5" />
+
+          <path id="line-proteins" class="pointer-line" d="M 0 490 L 100 490 L 150 340" />
+          <circle id="dot-proteins" class="pointer-circle" cx="150" cy="340" r="3.5" />
+
+          <path id="line-cga" class="pointer-line" d="M 440 50 L 340 50 L 290 200" />
+          <circle id="dot-cga" class="pointer-circle" cx="290" cy="200" r="3.5" />
+
+          <path id="line-alkaloids" class="pointer-line" d="M 440 270 L 310 270" />
+          <circle id="dot-alkaloids" class="pointer-circle" cx="310" cy="270" r="3.5" />
+
+          <path id="line-acids" class="pointer-line" d="M 440 490 L 340 490 L 290 340" />
+          <circle id="dot-acids" class="pointer-circle" cx="290" cy="340" r="3.5" />
+        </svg>
+
+        <div class="bean-image-wrapper" id="core-bean-img">
+          <img src="green-coffee-bean.png" alt="Green Coffee Bean Real Texture" onerror="this.src='https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?q=80&w=600&auto=format&fit=crop'">
+        </div>
+      </div>
+
+      <div class="side-column" id="right-col">
+        <div class="category-card" data-id="cga" style="--theme-color: #FF2D55;">
+          <div class="card-label" style="color: #FF2D55;">총 구성 비율 • 6-8%</div>
+          <div class="card-title">클로로겐산 이성질체 무리</div>
+          <div class="card-desc">생두 최주력 항산화 폴리페놀 복합체군으로, 결합 위치에 따라 로스팅 후 고급스러운 쓴맛과 아린 떫은맛의 향방을 가릅니다.</div>
+        </div>
+        <div class="category-card" data-id="alkaloids" style="--theme-color: #AF52DE;">
+          <div class="card-label" style="color: #AF52DE;">총 구성 비율 • 2-3%</div>
+          <div class="card-title">알칼로이드 및 기능성 염기</div>
+          <div class="card-desc">식물 자체 방어 인자이자 커피 각성의 주역군으로, 열변해 저항 특성에 따라 소멸과 보존의 극단적 대조를 이룹니다.</div>
+        </div>
+        <div class="category-card" data-id="acids" style="--theme-color: #34C759;">
+          <div class="card-label" style="color: #34C759;">총 구성 비율 • 1.5-2.5%</div>
+          <div class="card-title">유기산 및 페놀산 대가족</div>
+          <div class="card-desc">구연산, 사과산 등 지방족 과일산과 브루잉 후 혀를 조여내는 페놀산 등 아라비카 신미의 세포대사 근원체 총망라 구역입니다.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="footer-zone">
+      <div class="ref-box">
+        <div class="ref-title">🔬 Green Coffee Bean Microscopic Analysis Reference (HPLC / GC-MS Comprehensive)</div>
+        • <strong>Flament, I. (2001).</strong> <em>Coffee Flavor Chemistry</em>. John Wiley &amp; Sons. (유리 아미노산 전수 배열 및 유기산 분자 전구체 데이터 인용)<br>
+        • <strong>Farah, A. (2012).</strong> "Coffee constituents." <em>Emerging Health Effects</em>, 21-58. (클로로겐산 모노/디 이성질체 복합 분자 정량 스펙트럼 매핑)<br>
+        • <strong>Speer, K., &amp; Kölling-Speer, I. (2006).</strong> "The lipid fraction of the coffee bean." <em>Plant Physiology</em>, 18, 201-216. (5-HTA 세로토닌 아미드 왁스층 고증)
+      </div>
+
+      <div class="logo-box">
+        <div class="logo-main">Gachicoffee</div>
+        <div class="logo-sub">Yeosu, Korea • ESTD. 2017</div>
+      </div>
+    </div>
+
+    <div id="popover" class="apple-popover"></div>
+  </div>
+
+  <script>
+    const greenChemicalDB = {
+      carbs: {
+        title: "🌾 탄수화물 및 유리당 분자 명세",
+        color: "#007AFF",
+        items: [
+          ["불용성 셀룰로오스 (Cellulose)", "생두 세포벽의 뼈대를 만드는 다당류. 로스팅 가스 압력을 내부 가두는 단단한 세포 감옥 역학"],
+          ["갈락토만난 & 아라비노갈락탄", "세포벽 채우는 반불용성 구조물. 로스팅 열분해로 일부 수용화되어 커피 바디감(Mouthfeel) 형성"],
+          ["수용성 유리 자당 (Sucrose)", "아라비카 생두 당의 핵심(6-9%). 로스팅 초기 쪼개져 유기산과 카라멜 향미 단맛 분자를 뿜는 전구체의 왕"],
+          ["포도당 & 과당 (Glucose / Fructose)", "0.1-0.5% 미량 환원당. 고온 노출 즉시 아미노산과 엉켜 구수한 볶은 향을 내는 마이야르 반응의 시동 분자"],
+          ["올리고당류 (Raffinose / Stachyose)", "생두의 동면 상태 생존을 돕는 당류. 로스팅 시 복합적인 단 향 미세 톤 생성 보조"]
+        ]
+      },
+      lipids: {
+        title: "🥑 지질 및 에센셜 오일 분자 명세",
+        color: "#FF9500",
+        items: [
+          ["트라이글리세라이드 fatty acids 체인", "리놀레산(Linoleic), 올레산(Oleic), 팔미트산(Palmitic) 에스테르 복합체. 향기 물질을 용해해 보존하는 핵심 용매"],
+          ["카훼올 디테르펜 (Kahweol)", "아라비카 품종에서만 주로 발견되는 고유 디테르펜. 커피 오일 고유의 특이 질감 연출"],
+          ["카페스톨 디테르펜 (Cafestol)", "생두 상태선 커피산과 묶여 존재. 에스프레소 가압 시 오일리한 크레마 유화 에멀전의 물리적 뼈대 형성"],
+          ["식물성 스테롤 (Sitosterol / Stigmasterol)", "세포막 유연성 유지 지질 화합물. 커피 지질 추출액의 탁도와 여운 질감 보조"],
+          ["토코페롤 복합체 (Tocopherols)", "알파/베타/감마 비타민E 지질 항산화제. 생두 장기 보관(Old crop화) 시 오일의 내부 산패 막는 방어벽"],
+          ["세로토닌 유래 왁스 (5-C5-HTA)", "생두 겉면 왁스층에 포진한 지방산 아미드 화합물. 민감한 음용자의 위 점막 자극 및 속 쓰림 유발 물질"]
+        ]
+      },
+      proteins: {
+        title: "🥩 단백질 및 아미노산 분자 명세",
+        color: "#5856D6",
+        items: [
+          ["11S 글로불린 (11S Globulin)", "생두 저장 단백질의 80% 이상 점유. 로스팅 스트레스를 받으면 아미노산 조각으로 깨지며 전구체 공급"],
+          ["수용성 효소성 알부민 (Albumins)", "미량 세포액 단백질. 로스팅 초기 마이야르 반응 속도를 가속하는 기능성 촉매"],
+          ["유리 아미노산 (글루탐산 / 아스파르트산)", "감칠맛과 묵직하게 깔리는 깊은 베이스 신맛 톤을 빌드업하는 수용성 천연 아미노산"],
+          ["유리 아미노산 (알라닌 / 아스파라긴 / 시스테인)", "마이야르 반응 유도체. 특히 시스테인은 황(S) 원자를 품어 신선한 커피 향 티올(Thiol) 폭발의 핵"],
+          ["부패 마커 비오젠 아민 (Putrescine / Cadaverine)", "과발효되거나 곰팡이/결점두 오염 시 수 ppm 급증. 로스팅 후 걸레 빤 행주 악취를 남기는 저승사자 성분"]
+        ]
+      },
+      cga: {
+        title: "🧪 클로로겐산 이성질체 분자 명세",
+        color: "#FF2D55",
+        items: [
+          ["5-CQA (네오클로로겐산 계열)", "생두 폴리페놀 중 압도적 점유. 로스팅 시 퀴닌산락톤 등으로 변형되어 커피 고유의 품격 있는 쓴맛 완성"],
+          ["3-CQA & 4-CQA (크립토클로로겐산 무리)", "위치 이성질체. 로스팅 진행에 따라 열분해 속도를 달리하며 복합적인 아스트린젠시 밸런스 조정"],
+          ["디-카페오일퀴닌산 (3,4-diCQA / 3,5-diCQA)", "카페산 2분자가 결합한 무거운 폴리페놀. 미성숙 결점두에 많으며, 혀를 마비시키는 거칠고 강한 떫은맛 유발"],
+          ["페룰로일퀴닌산 (3,4,5-FQA)", "페룰산 결합 폴리페놀. 로스팅 후 훈연 향, 구운 나무, 알싸하고 스파이시한 이국적 향신료 향의 근원체"],
+          ["카페오일페룰로일퀴닌산 (CFQA)", "미량 복합 폴리페놀 화합물류. 커피 액체 전반의 깊이감과 중후한 항산화 밀도를 뒤에서 보조"]
+        ]
+      },
+      alkaloids: {
+        title: "🧬 알칼로이드 및 기능성 염기 명세",
+        color: "#AF52DE",
+        items: [
+          ["카페인 (Caffeine)", "결합 파괴점이 극도로 높음. 로스팅을 아무리 강하게 진행해도 소멸치 않고 생존하여 직관적 있고 깔끔한 쓴맛 투사"],
+          ["트리고넬린 (Trigonelline)", "카페인과 반대로 열에 파멸적 수준 취약. 로스팅과 동시 소멸하며 커피 향 치트키인 피리딘(Pyridine) 향기 분자 생산"],
+          ["니아신 (Niacin / Vitamin B3)", "트리고넬린이 열을 받아 쪼개지며 유출되는 수용성 비타민 유효 성분. 추출 음료에 정밀 영양학적 깊이 부여"],
+          ["N-메틸피리디늄 (N-methylpyridinium)", "트리고넬린 열분해 최종 변형물. 위산 분비를 직접적으로 억제하여 속 편한 커피 음용을 돕는 천연 순화 성분"]
+        ]
+      },
+      acids: {
+        title: "🍋 수용성 유기산 및 페놀산 분자 명세",
+        color: "#34C759",
+        items: [
+          ["구연산 (Citric Acid)", "가장 풍부한 유기산(0.7-1.0%). 감귤, 레몬, 자몽류의 쨍하고 화사하게 터지는 시트러스 산미 톤 제공"],
+          ["사과산 (Malic Acid)", "청량한 청포도, 아삭한 아오리사과의 상큼하고 세련된 입체적 신맛 줄기를 통제하는 핵심 과일산"],
+          ["옥살산 / 수산 (Oxalic Acid)", "세포 대사 유래 무기성 산 분자. 미량 검출되며 추출액 초기 산도(pH 5.0 내외)의 화학적 균형 보조"],
+          ["호박산 (Succinic Acid)", "생두 동면 대사 파생 물질. 조개류 아미노산 계열과 유사하게 혀를 자극하는 독특한 감칠맛 도는 신맛 레이어 유발"],
+          ["푸마르산 (Fumaric Acid)", "미량의 지방족 디카복실산 성분. 과일 주스나 청량 음료 같은 과일 노트의 깊이감을 뒤에서 지탱하는 산미 인자"],
+          ["타르타르산 / 주석산 (Tartaric Acid)", "포도 와인 등에서 발견되는 산. 극미량 존재하나 스페셜티 커피 특유의 고급스러운 와이니(Winey) 산미 스펙트럼 보조"],
+          ["글리콜산 (Glycolic Acid)", "식물성 대사 회로 파생 유기산. 미량 거동을 통해 약산성 커피 액체 복합 미각 밸런스 보안"],
+          ["퀴닌산 (Quinic Acid)", "생두 상태선 소량이나 로스팅 시 클로로겐산 파괴물로 급증. 추출 식은 커피 특유의 날카롭고 날 선 신쓴맛 유출"],
+          ["커피산 / 카페산 (Caffeic Acid)", "CGA에서 분리되는 페놀산. 혀 뒤편에 조여오는 떫은 마우스필(Astringency)과 묵직한 산미의 긴 여운 유도"],
+          ["페룰산 & 쿠마르산 (Ferulic / p-Coumaric Acid)", "미량 페놀산 복합 무리. 로스팅 열기를 흡수해 깨지면서 이국적 정향(Clove), 알싸한 향신료(Spicy) 향의 전구체 역할 수행"]
+        ]
+      }
+    };
+
+    const cards = document.querySelectorAll('.category-card');
+    const popover = document.getElementById('popover');
+    const beanWrapper = document.getElementById('core-bean-img');
+    const beanImg = beanWrapper.querySelector('img');
+    
+    let popoverTimeout = null;
+
+    cards.forEach(card => {
+      card.addEventListener('mouseenter', () => {
+        clearTimeout(popoverTimeout);
+        const id = card.getAttribute('data-id');
+        const content = greenChemicalDB[id];
+        if(!content) return;
+
+        card.classList.add('active-card');
+        document.getElementById(`line-${id}`).classList.add('active-line');
+        document.getElementById(`dot-${id}`).classList.add('active-circle');
+        
+        // 💡 실사 이미지 레이어 다이내믹 줌인 애니메이션 링크
+        beanWrapper.style.transform = "scale(1.05)";
+        if(beanImg) beanImg.style.transform = "scale(1.08)";
+
+        let html = `<div class="pop-title" style="color: ${content.color}">${content.title}</div>`;
+        content.items.forEach(item => {
+          html += `
+            <div class="pop-item-box">
+              <div class="pop-item-name">${item[0]}</div>
+              <div class="pop-item-desc">${item[1]}</div>
+            </div>
+          `;
+        });
+        popover.innerHTML = html;
+
+        const containerRect = document.querySelector('.dashboard-container').getBoundingClientRect();
+        const cardRect = card.getBoundingClientRect();
+        
+        const xLeft = cardRect.left - containerRect.left;
+        const xRight = cardRect.right - containerRect.left;
+        const yTop = cardRect.top - containerRect.top;
+
+        const isLeftColumn = card.parentElement.id === 'left-col';
+        
+        if (isLeftColumn) {
+          popover.style.left = `${xRight + 12}px`; 
+        } else {
+          popover.style.left = `${xLeft - 472}px`; 
+        }
+        popover.style.top = `${yTop - 20}px`; 
+        popover.style.display = 'block';
+        popover.scrollTop = 0; 
+      });
+
+      card.addEventListener('mouseleave', () => {
+        const id = card.getAttribute('data-id');
+        popoverTimeout = setTimeout(() => {
+          card.classList.remove('active-card');
+          document.getElementById(`line-${id}`).classList.remove('active-line');
+          document.getElementById(`dot-${id}`).classList.remove('active-circle');
+          beanWrapper.style.transform = "scale(1)";
+          if(beanImg) beanImg.style.transform = "scale(1)";
+          popover.style.display = 'none';
+        }, 150);
+      });
+    });
+
+    popover.addEventListener('mouseenter', () => {
+      clearTimeout(popoverTimeout);
+    });
+
+    popover.addEventListener('mouseleave', () => {
+      cards.forEach(card => card.classList.remove('active-card'));
+      const lines = document.querySelectorAll('.pointer-line');
+      const circles = document.querySelectorAll('.pointer-circle');
+      lines.forEach(l => l.classList.remove('active-line'));
+      circles.forEach(c => c.classList.remove('active-circle'));
+      beanWrapper.style.transform = "scale(1)";
+      if(beanImg) beanImg.style.transform = "scale(1)";
+      popover.style.display = 'none';
+    });
+  </script>
+</body>
+</html>
