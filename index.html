@@ -111,12 +111,11 @@
       align-items: center;
     }
 
-    /* 💡 [수정 사항 2 해결] 실사 고해상도 이미지를 품는 묵직한 3D 하드웨어 입체감 프레임 설계 */
+    /* 생두 래퍼 쉐도우 프레임 */
     .bean-image-wrapper {
       width: 240px;
       height: 240px;
       border-radius: 50%;
-      /* 생두 고유의 풀 빛을 받쳐주는 프리미엄 네추럴 드롭 섀도우 인입 */
       box-shadow: 0 20px 50px rgba(70, 93, 61, 0.22), inset 0 0 20px rgba(0,0,0,0.06);
       overflow: hidden;
       border: 6px solid #FFFFFF;
@@ -205,7 +204,7 @@
       to { opacity: 1; transform: scale(1) translateY(0); }
     }
 
-    /* 💡 [수정 사항 1 해결] 완전 불투명 화이트 실드로 스크롤 시 글자 오버랩 현상을 완벽 차단한 고정 소제목 */
+    /* 스크롤 시 글자 오버랩 현상을 완벽 차단하는 고정 소제목 */
     .pop-title {
       font-size: 16px;
       font-weight: 700;
@@ -282,9 +281,10 @@
 </head>
 <body>
 
-<div class="chart-header">
-      <h1 class="chart-title">Green Coffee Bean Chemical Architecture (Ultimate Resolution)</h1>
-      <p class="chart-description">
+  <div class="dashboard-container">
+    <div class="header-zone">
+      <h1 class="main-title">Green Coffee Bean Chemical Architecture (Ultimate Resolution)</h1>
+      <p class="sub-description">
         본 인포그래픽은 아라비카 표준 생두(Green Bean)를 구성하는 6대 주요 화학 성분군의 정밀 분석 데이터입니다. 대분류 뒤에 숨겨진 미시적인 화학 전구체(Precursors) 성분들을 확인할 수 있습니다. 각 카드에 마우스를 올리면 수용성 유기산과 지질, 유리 아미노산 및 다양한 세부 성분들을 스크롤을 통해 상세히 확인할 수 있습니다.
       </p>
     </div>
@@ -305,7 +305,7 @@
         <div class="category-card" data-id="proteins" style="--theme-color: #5856D6;">
           <div class="card-label" style="color: #5856D6;">총 구성 비율 • 11-15%</div>
           <div class="card-title">단백질 및 질소 화합물 행렬</div>
-          <div class="card-desc">마이야르 반응의 중추 원료인 단백질과 자유 아미노산 무리이며, 과발효 상태를 추적하는 미생물 변성 마커를 내포합니다.</div>
+          <div class="card-desc">마이야르 반응의 중추 원료인 단백질 tobacco 자유 아미노산 무리이며, 과발효 상태를 추적하는 미생물 변성 마커를 내포합니다.</div>
         </div>
       </div>
 
@@ -339,7 +339,7 @@
         <div class="category-card" data-id="cga" style="--theme-color: #FF2D55;">
           <div class="card-label" style="color: #FF2D55;">총 구성 비율 • 6-8%</div>
           <div class="card-title">클로로겐산 이성질체 무리</div>
-          <div class="card-desc">생두 최주력 항산화 폴리페놀 복합체군으로, 결합 위치에 따라 로스팅 후 고급스러운 쓴맛과 아린 떫은맛의 향방을 가릅니다.</div>
+          <div class="card-desc">생두 최주력 항산화 폴리페놀 복합체군으로, 결합 위치에 따라 로스팅 후 고급스러운 쓴맛และ 아린 떫은맛의 향방을 가릅니다.</div>
         </div>
         <div class="category-card" data-id="alkaloids" style="--theme-color: #AF52DE;">
           <div class="card-label" style="color: #AF52DE;">총 구성 비율 • 2-3%</div>
@@ -465,7 +465,6 @@
         document.getElementById(`line-${id}`).classList.add('active-line');
         document.getElementById(`dot-${id}`).classList.add('active-circle');
         
-        // 💡 실사 이미지 레이어 다이내믹 줌인 애니메이션 링크
         beanWrapper.style.transform = "scale(1.05)";
         if(beanImg) beanImg.style.transform = "scale(1.08)";
 
